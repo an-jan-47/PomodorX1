@@ -50,7 +50,7 @@ const PomodoroTab = () => {
             <CardTitle className="text-sm text-muted-foreground">Focus Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{Math.round(totalFocusTime / 60)} hrs</p>
+            <p className="text-3xl font-bold">{Math.round(totalFocusTime / 60)} mins </p>
             <p className="text-sm text-muted-foreground">Total focus time</p>
           </CardContent>
         </Card>

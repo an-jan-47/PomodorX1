@@ -29,7 +29,7 @@ export const saveTasks = (tasks: Task[]) => {
 
 // Timer Settings Storage
 export function getTimerSettings(): TimerSettings {
-  const settings = localStorage.getItem("timerSettings");
+  const settings = localStorage.getItem(TIMER_SETTINGS_KEY);
   return settings ? JSON.parse(settings) : defaultTimerSettings;
 }
 
