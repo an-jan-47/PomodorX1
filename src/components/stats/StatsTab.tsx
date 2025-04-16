@@ -1,16 +1,11 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, Circle, ListChecks, AlertCircle, Clock, Timer, Hourglass, TrendingUp, Lightbulb, Gauge, Target } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useMemo } from "react";
 import { calculateStats } from "@/lib/utils";
 import { motion } from "framer-motion";
-import StatsTimeframeSelector from "@/components/stats/StatsTimeframeSelector";
-import ProductivityTimeChart from "@/components/stats/ProductivityTimeChart";
-import ProductivityInsights from "@/components/stats/ProductivityInsights";
-import SessionDistributionChart from "@/components/stats/SessionDistributionChart";
-import ProductivityTrendChart from "@/components/stats/ProductivityTrendChart";
 
+// Helper for stat cards with animation
 const AnimatedStatCard = ({ icon, value, label, color, delay = 0 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -26,6 +21,7 @@ const AnimatedStatCard = ({ icon, value, label, color, delay = 0 }) => (
 
 const StatsTab = () => {
   const { tasks, pomodoroSessions, statsTimeframe } = useApp();
+
   const stats = useMemo(() => calculateStats(tasks, pomodoroSessions, statsTimeframe), [tasks, pomodoroSessions, statsTimeframe]);
 
   // Task stats cards
@@ -56,6 +52,7 @@ const StatsTab = () => {
     }
   ];
 
+  // Focus stats cards
   const focusCards = [
     {
       icon: <Clock className="h-8 w-8 text-purple-500" />,
@@ -85,13 +82,42 @@ const StatsTab = () => {
     }
   ];
 
+  // Productivity Insights (example, you can expand logic as needed)
+  const insightsCards = [
+    {
+      icon: <Lightbulb className="h-8 w-8 text-yellow-400" />,
+      value: "10:00",
+      label: "Peak Performance",
+      color: "text-yellow-400"
+    },
+    {
+      icon: <Gauge className="h-8 w-8 text-green-500" />,
+      value: "85%",
+      label: "Efficiency",
+      color: "text-green-500"
+    },
+    {
+      icon: <TrendingUp className="h-8 w-8 text-purple-500" />,
+      value: "92/100",
+      label: "Consistency",
+      color: "text-purple-500"
+    },
+    {
+      icon: <Target className="h-8 w-8 text-orange-400" />,
+      value: "60%",
+      label: "Goal Progress",
+      color: "text-orange-400"
+    }
+  ];
+
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 px-2 md:px-0">
+    <div className="w-full max-w-6xl mx-auto space-y-10 px-2 md:px-0">
       <h2 className="text-3xl font-bold mb-4 text-white">Statistics</h2>
-      <StatsTimeframeSelector />
+      {/* Timeframe Selector */}
+      {/* ...your timeframe selector here... */}
 
       {/* Tasks Overview */}
-      <Card className="bg-transparent border-none shadow-lg">
+      <Card className="bg-[#18181b] border-none shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-white">Tasks Overview</CardTitle>
         </CardHeader>
@@ -103,7 +129,7 @@ const StatsTab = () => {
       </Card>
 
       {/* Focus Overview */}
-      <Card className="bg-transparent border-none shadow-lg">
+      <Card className="bg-[#18181b] border-none shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-white">Focus Overview</CardTitle>
         </CardHeader>
@@ -114,18 +140,32 @@ const StatsTab = () => {
         </CardContent>
       </Card>
 
-      {/* Replace ProductivityTimeChart with ProductivityTrendChart */}
-      <Card className="bg-transparent border-none shadow-lg">
-        <CardContent>
-          <ProductivityTrendChart />
+      {/* Productivity Insights */}
+      <Card className="bg-[#18181b] border-none shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold text-white">Productivity Insights</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {insightsCards.map((stat, idx) => (
+            <AnimatedStatCard key={stat.label} {...stat} delay={idx * 0.08} />
+          ))}
         </CardContent>
       </Card>
 
-      {/* Additional Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ProductivityInsights />
-        <SessionDistributionChart />
-      </div>
+      {/* Productivity Time Chart */}
+      <Card className="bg-[#18181b] border-none shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold text-white">Productivity Pattern</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Place your ProductivityTimeChart here */}
+          {/* <ProductivityTimeChart /> */}
+          <div className="w-full h-[300px] flex items-center justify-center text-muted-foreground">
+            {/* Chart Placeholder */}
+            Chart goes here
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

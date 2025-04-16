@@ -22,38 +22,37 @@ const TasksOverview = () => {
 
   return (
     <div className="space-y-4">
-      {/* Updated to center the text */}
       <h2 className="text-xl font-bold text-center">Tasks Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <CheckCircle className="h-8 w-8 mx-auto text-green-500" />
-            <div className="mt-2 text-3xl font-bold">{completedTasks.length}</div>
-            <div className="text-sm text-muted-foreground">Completed Tasks</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="pt-4 md:pt-6 text-center p-3 md:p-4">
+            <CheckCircle className="h-6 w-6 md:h-8 md:w-8 mx-auto text-green-500" />
+            <div className="mt-2 text-2xl md:text-3xl font-bold">{completedTasks.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Completed Tasks</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Clock className="h-8 w-8 mx-auto text-yellow-500" />
-            <div className="mt-2 text-3xl font-bold">{pendingTasks.length}</div>
-            <div className="text-sm text-muted-foreground">Pending Tasks</div>
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="pt-4 md:pt-6 text-center p-3 md:p-4">
+            <Clock className="h-6 w-6 md:h-8 md:w-8 mx-auto text-yellow-500" />
+            <div className="mt-2 text-2xl md:text-3xl font-bold">{pendingTasks.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Pending Tasks</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <ListTodo className="h-8 w-8 mx-auto text-purple-500" />
-            <div className="mt-2 text-3xl font-bold">{tasks.length}</div>
-            <div className="text-sm text-muted-foreground">Total Tasks</div>
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="pt-4 md:pt-6 text-center p-3 md:p-4">
+            <ListTodo className="h-6 w-6 md:h-8 md:w-8 mx-auto text-purple-500" />
+            <div className="mt-2 text-2xl md:text-3xl font-bold">{tasks.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Total Tasks</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <AlertCircle className="h-8 w-8 mx-auto text-red-500" />
-            <div className="mt-2 text-3xl font-bold">{overdueTasks.length}</div>
-            <div className="text-sm text-muted-foreground">Overdue Tasks</div>
+        <Card className="hover:shadow-md transition-shadow duration-200">
+          <CardContent className="pt-4 md:pt-6 text-center p-3 md:p-4">
+            <AlertCircle className="h-6 w-6 md:h-8 md:w-8 mx-auto text-red-500" />
+            <div className="mt-2 text-2xl md:text-3xl font-bold">{overdueTasks.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Overdue Tasks</div>
           </CardContent>
         </Card>
       </div>

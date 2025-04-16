@@ -205,8 +205,44 @@ const PomodoroTimer = ({ onOpenSettings }: PomodoroTimerProps) => {
     return () => {
       workerRef.current?.terminate();
       workerRef.current = null;
+      if (timerRef.current) {
+        cancelAnimationFrame(timerRef.current);
+        timerRef.current = null;
+      }
+      targetEndTimeRef.current = null;
     };
   }, []);
+
+  // --- FIX: Ensure timer resumes if running when remounting or state changes ---
+  useEffect(() => {
+    // Only start if timer should be running and not paused, and time remains
+    if (state.isRunning && !state.isPaused && state.timeRemaining > 0) {
+      // Prevent multiple animation frames
+      if (!timerRef.current) {
+        // Calculate the target end time based on lastUpdated and timeRemaining
+        const lastUpdated = new Date(state.lastUpdated).getTime();
+        const now = Date.now();
+        const elapsed = Math.floor((now - lastUpdated) / 1000);
+        const adjustedTimeRemaining = Math.max(0, state.timeRemaining - elapsed);
+        targetEndTimeRef.current = now + adjustedTimeRemaining * 1000;
+        setState(prev => ({
+          ...prev,
+          timeRemaining: adjustedTimeRemaining,
+          lastUpdated: new Date().toISOString(),
+        }));
+        workerRef.current?.postMessage({ command: 'start', targetTime: targetEndTimeRef.current });
+        timerRef.current = requestAnimationFrame(tick);
+      }
+    }
+    // If timer is not running, ensure animation frame is cleared
+    if ((!state.isRunning || state.isPaused || state.timeRemaining === 0) && timerRef.current) {
+      cancelAnimationFrame(timerRef.current);
+      timerRef.current = null;
+      workerRef.current?.postMessage({ command: 'stop' });
+      targetEndTimeRef.current = null;
+    }
+    // eslint-disable-next-line
+  }, [state.isRunning, state.isPaused, state.timeRemaining, tick]);
 
   const startTimer = useCallback(() => {
     if (!state.isRunning) playSound("start");
@@ -253,7 +289,6 @@ const PomodoroTimer = ({ onOpenSettings }: PomodoroTimerProps) => {
     });
   }, [timerSettings]);
 
-  // Rest of the component remains the same
   useEffect(() => {
     localStorage.setItem("pomodoroState", JSON.stringify({ ...state, lastUpdated: new Date().toISOString() }));
   }, [state]);

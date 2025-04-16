@@ -5,7 +5,7 @@ interface HourlyData {
   focusMinutes: number;
 }
 
-export const calculatePeakHours = (hourlyData: HourlyData[]) => {
+export const calculateSimplePeakHours = (hourlyData: HourlyData[]) => {
   const sorted = [...hourlyData].sort((a, b) => b.focusMinutes - a.focusMinutes);
   const peakStart = parseInt(sorted[0]?.value || "0");
   return {
@@ -14,20 +14,65 @@ export const calculatePeakHours = (hourlyData: HourlyData[]) => {
   };
 };
 
+// Add these utility functions to improve accuracy
+
 export const calculateProductivityScore = (
-  sessionCount: number, 
+  sessionCount: number,
   focusMinutes: number,
   tagsCount: number
-) => {
-  // Score based on:
-  // - Focus minutes (50% weight)
-  // - Session consistency (30% weight)
-  // - Task organization (20% weight - tags)
-  const normalizedMinutes = Math.min(300, focusMinutes) / 3; // Max 100
-  const normalizedConsistency = Math.min(10, sessionCount) * 3; // Max 30
-  const normalizedOrganization = Math.min(5, tagsCount) * 4; // Max 20
+): number => {
+  // Base score from focus minutes (max 50 points)
+  const minutesScore = Math.min(50, (focusMinutes / 60) * 25);
   
-  return Math.round(normalizedMinutes + normalizedConsistency + normalizedOrganization);
+  // Session consistency score (max 30 points)
+  const consistencyScore = Math.min(30, sessionCount * 10);
+  
+  // Task organization score based on tags (max 20 points)
+  const organizationScore = Math.min(20, tagsCount * 5);
+  
+  return Math.round(minutesScore + consistencyScore + organizationScore);
+};
+
+export const calculatePeakHours = (data: HourlyData[]): { start: number; end: number } => {
+  // Find the 3-hour window with highest productivity
+  let maxProductivity = 0;
+  let peakStart = 0;
+  let peakEnd = 0;
+
+  for (let i = 0; i < data.length - 2; i++) {
+    const windowProductivity = 
+      data[i].focusMinutes + 
+      data[i + 1].focusMinutes + 
+      data[i + 2].focusMinutes;
+
+    if (windowProductivity > maxProductivity) {
+      maxProductivity = windowProductivity;
+      peakStart = i;
+      peakEnd = i + 2;
+    }
+  }
+
+  return { start: peakStart, end: peakEnd };
+};
+
+export const calculateTrendline = (data: HourlyData[]): number[] => {
+  const n = data.length;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
+
+  data.forEach((point, i) => {
+    sumX += i;
+    sumY += point.focusMinutes;
+    sumXY += i * point.focusMinutes;
+    sumXX += i * i;
+  });
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  return data.map((_, i) => slope * i + intercept);
 };
 
 export const analyzeFocusPatterns = (sessions: PomodoroSession[]) => {
