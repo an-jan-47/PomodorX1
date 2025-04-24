@@ -1,4 +1,4 @@
-⏳ PomodoroX Zen — AI powered Productivity App
+⏳ PomodoroX — AI powered Productivity App
 
 Welcome to PomodoroX, your ultimate productivity sidekick! Whether you're fighting procrastination monsters or just trying to survive exam season, this app has your back—one pomodoro at a time.
 
