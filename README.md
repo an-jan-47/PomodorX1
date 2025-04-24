@@ -1,77 +1,50 @@
-<<<<<<< HEAD
-# Welcome to your Lovable project
+⏳ PomodoroX Zen — AI powered Productivity App
 
-## Project info
+Welcome to PomodoroX, your ultimate productivity sidekick! Whether you're fighting procrastination monsters or just trying to survive exam season, this app has your back—one pomodoro at a time.
 
-**URL**: https://lovable.dev/projects/5d079f51-e594-4814-ac39-b8445ae49d21
+## 🚀 Features
 
-## How can I edit this code?
+- ✅ 25/5 Pomodoro Cycle: Classic 25-minute work, 5-minute break.
+- ⏰ Long Breaks: Take a chill 15-minute break after 4 Pomodoros.
+- 🔔 Custom Alerts: Audio or desktop notifications when it's break or work time.
+- 🌙 Dark Mode: Because your retinas deserve respect.
+- 📊 Session Tracker : Keep track of how many pomodoros you crush daily.
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+- Frontend: React, Typescript
+- Styling: TailwindCSS / CSS Modules
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/5d079f51-e594-4814-ac39-b8445ae49d21) and start prompting.
+> Feel free to customize this based on your actual tech stack!
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📦 Installation
 
-**Use your preferred IDE**
+Clone the repo and make it yours:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/yourusername/pomodoro-zen.git
+cd pomodoro-zen
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Now open your browser and head to `http://localhost:3000` — boom, you're in!
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+## ✨ To-Do / Improvements
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- [ ] Add pause/resume button
+- [ ] Save session data to localStorage
+- [ ] Add soothing ambient sounds 🌲
+- [ ] Export productivity reports as .pdf
+- [ ] Mobile-first design tweaks
 
-## What technologies are used for this project?
+## 🤝 Contributions
 
-This project is built with:
+Got ideas? Found a bug? Want to add a neon-pink theme? PRs and issues are super welcome.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📜 License
 
-## How can I deploy this project?
+MIT — Do whatever you want, just don't blame me if you fall into a productivity black hole.
 
-Simply open [Lovable](https://lovable.dev/projects/5d079f51-e594-4814-ac39-b8445ae49d21) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-=======
-# PomodoroX
->>>>>>> 221d7fedbb627a55f95cdc814a03e1daf88fafea
+---
