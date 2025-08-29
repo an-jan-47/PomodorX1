@@ -21,16 +21,66 @@ export const calculateProductivityScore = (
   focusMinutes: number,
   tagsCount: number
 ): number => {
-  // Base score from focus minutes (max 50 points)
+  // Improved accuracy with weighted calculations
   const minutesScore = Math.min(50, (focusMinutes / 60) * 25);
+  const consistencyScore = Math.min(30, (sessionCount / 4) * 30);
+  const organizationScore = Math.min(20, (tagsCount / 3) * 20);
   
-  // Session consistency score (max 30 points)
-  const consistencyScore = Math.min(30, sessionCount * 10);
+  // Add validation to ensure score is between 0-100
+  return Math.max(0, Math.min(100, Math.round(
+    minutesScore + consistencyScore + organizationScore
+  )));
+};
+
+// Add new metrics calculation
+export const calculateAdvancedMetrics = (sessions: PomodoroSession[]) => {
+  const totalSessions = sessions.length;
+  if (!totalSessions) return null;
+
+  const completedSessions = sessions.filter(s => s.completedAt).length;
+  const totalFocusTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+  const averageSessionLength = totalFocusTime / totalSessions;
   
-  // Task organization score based on tags (max 20 points)
-  const organizationScore = Math.min(20, tagsCount * 5);
+  return {
+    completionRate: (completedSessions / totalSessions) * 100,
+    averageSessionLength,
+    focusTimeDistribution: calculateFocusTimeDistribution(sessions),
+    productivityTrend: calculateProductivityTrend(sessions),
+    consistencyScore: calculateConsistencyScore(sessions)
+  };
+};
+
+// Add focus time distribution analysis
+const calculateFocusTimeDistribution = (sessions: PomodoroSession[]) => {
+  const hourlyDistribution = new Array(24).fill(0);
   
-  return Math.round(minutesScore + consistencyScore + organizationScore);
+  sessions.forEach(session => {
+    if (session.completedAt) {
+      const hour = new Date(session.completedAt).getHours();
+      hourlyDistribution[hour] += session.duration;
+    }
+  });
+  
+  return hourlyDistribution;
+};
+
+// Add productivity trend analysis
+const calculateProductivityTrend = (sessions: PomodoroSession[]) => {
+  const dailyProductivity = new Map<string, number>();
+  
+  sessions.forEach(session => {
+    if (session.completedAt) {
+      const date = new Date(session.completedAt).toLocaleDateString();
+      dailyProductivity.set(date, 
+        (dailyProductivity.get(date) || 0) + session.duration
+      );
+    }
+  });
+  
+  return Array.from(dailyProductivity.entries())
+    .sort(([dateA], [dateB]) => 
+      new Date(dateA).getTime() - new Date(dateB).getTime()
+    );
 };
 
 export const calculatePeakHours = (data: HourlyData[]): { start: number; end: number } => {

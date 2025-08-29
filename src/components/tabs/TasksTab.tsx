@@ -64,15 +64,15 @@ const TasksTab = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-semibold">Task Management</h2>
+    <div className="space-y-4 md:space-y-6 animate-fade-in">
+      <h2 className="text-xl md:text-2xl font-semibold">Task Management</h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-start">
         {/* Left side - Task management */}
-        <div className="flex flex-col gap-4 md:gap-6 h-full">
+        <div className="flex flex-col gap-3 md:gap-4 h-full">
           {/* Add task section */}
           <Card className="p-3 md:p-4">
-            <h3 className="text-lg md:text-xl font-medium mb-3 md:mb-4">Add New Task</h3>
+            <h3 className="text-base md:text-lg font-medium mb-2 md:mb-3">Add New Task</h3>
             <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="What needs to be done?"
@@ -93,7 +93,7 @@ const TasksTab = () => {
           
           {/* Task list section */}
           <Card className="flex-1 flex flex-col">
-            <h3 className="text-lg md:text-xl font-medium p-3 md:p-4 pb-2">Your Tasks</h3>
+            <h3 className="text-base md:text-lg font-medium p-3 md:p-4 pb-2">Your Tasks</h3>
             
             <Tabs 
               defaultValue="pending" 
@@ -102,19 +102,19 @@ const TasksTab = () => {
               <TabsList className="grid w-full grid-cols-3 bg-background border border-border">
                 <TabsTrigger 
                   value="pending"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm py-1 md:py-1.5"
                 >
                   Pending ({pendingTasks.length})
                 </TabsTrigger>
                 <TabsTrigger 
                   value="overdue"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm py-1 md:py-1.5"
                 >
                   Overdue ({overdueTasks.length})
                 </TabsTrigger>
                 <TabsTrigger 
                   value="completed"
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm py-1 md:py-1.5"
                 >
                   Completed ({completedTasks.length})
                 </TabsTrigger>

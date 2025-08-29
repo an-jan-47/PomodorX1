@@ -86,30 +86,30 @@ const StatsTab = () => {
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 px-2 md:px-0">
-      <h2 className="text-3xl font-bold mb-4 text-white">Statistics</h2>
+    <div className="w-full max-w-6xl mx-auto space-y-4 md:space-y-8 px-2 md:px-0">
+      <h2 className="text-2xl md:text-3xl font-bold mb-2 md:mb-4 text-white">Statistics</h2>
       <StatsTimeframeSelector />
-
+  
       {/* Tasks Overview */}
       <Card className="bg-transparent border-none shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold text-white">Tasks Overview</CardTitle>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-center text-xl md:text-2xl font-bold text-white">Tasks Overview</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {tasksCards.map((stat, idx) => (
             <AnimatedStatCard key={stat.label} {...stat} delay={idx * 0.08} />
           ))}
         </CardContent>
       </Card>
-
-      {/* Focus Overview */}
+  
+      {/* Focus Sessions */}
       <Card className="bg-transparent border-none shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold text-white">Focus Overview</CardTitle>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-center text-xl md:text-2xl font-bold text-white">Focus Sessions</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {focusCards.map((stat, idx) => (
-            <AnimatedStatCard key={stat.label} {...stat} delay={idx * 0.08} />
+            <AnimatedStatCard key={stat.label} {...stat} delay={idx * 0.08 + 0.2} />
           ))}
         </CardContent>
       </Card>

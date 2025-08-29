@@ -143,13 +143,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Pomodoro session functions
   const recordPomodoroSession = (session: Omit<PomodoroSession, "id">) => {
-    const newSession: PomodoroSession = {
+    const newSession = {
       ...session,
-      id: generateId(),
+      id: generateUniqueId(),
+      timestamp: Date.now()
     };
+  
+    // Immediate state update
+    setPomodoroSessions(prev => [...prev, newSession]);
+    
+    // Persist to storage
     const updatedSessions = [...pomodoroSessions, newSession];
-    setPomodoroSessions(updatedSessions);
-    savePomodoroSession(newSession);
+    savePomodoroSessions(updatedSessions);
+    
+    // Calculate and update stats immediately
+    const updatedStats = calculateAdvancedMetrics(updatedSessions);
+    // Update stats in state/storage
   };
 
   // Custom sounds functions
@@ -211,53 +220,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Sound functions
-  const playSound = (sound: "start" | "pause" | "complete") => {
+  const playSound = async (sound: "start" | "pause" | "complete") => {
     if (!timerSettings.soundEnabled) return;
     
     try {
-      // Create a new audio element each time to avoid issues with concurrent plays
-      const audio = new Audio();
+      // Create AudioContext for better control
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = timerSettings.soundVolume / 100;
       
-      // Set the source based on the sound type
-      if (currentCustomSound && (sound === "complete" || sound === "start")) {
-        audio.src = currentCustomSound;
-      } else {
-        // Default sounds
-        switch (sound) {
-          case "start":
-            audio.src = "/sounds/start.mp3";
-            break;
-          case "pause":
-            audio.src = "/sounds/pause.mp3";
-            break;
-          case "complete":
-            audio.src = "/sounds/complete.mp3";
-            break;
-        }
-      }
+      // Load and decode audio file
+      const response = await fetch(currentCustomSound || `/sounds/${sound}.mp3`);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
-      // Set volume using the soundVolume setting
-      audio.volume = timerSettings.soundVolume / 100;
+      // Create and configure source
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
       
-      // Add error handling
-      audio.onerror = () => {
-        console.error("Error playing sound for:", sound);
-        
-        // If custom sound fails, fall back to default
-        if (currentCustomSound && (sound === "complete" || sound === "start")) {
-          const fallbackAudio = new Audio(`/sounds/${sound}.mp3`);
-          fallbackAudio.volume = timerSettings.soundVolume / 100;
-          fallbackAudio.play().catch(e => console.error("Error playing fallback sound:", e));
-        }
+      // Start playback with fade-in
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(
+        timerSettings.soundVolume / 100,
+        audioContext.currentTime + 0.1
+      );
+      source.start();
+      
+      // Clean up
+      source.onended = () => {
+        source.disconnect();
+        gainNode.disconnect();
       };
-      
-      // Play the sound
-      audio.play().catch(e => console.error("Error playing sound:", e));
     } catch (error) {
-      console.error("Error in playSound function:", error);
+      console.error("Error playing sound:", error);
+      // Fallback to simple Audio API
+      fallbackPlaySound(sound);
     }
   };
-
+  
+  const fallbackPlaySound = (sound: "start" | "pause" | "complete") => {
+    const audio = new Audio(currentCustomSound || `/sounds/${sound}.mp3`);
+    audio.volume = timerSettings.soundVolume / 100;
+    audio.play().catch(console.error);
+  };
+  
   const value = {
     tasks,
     addTask,
