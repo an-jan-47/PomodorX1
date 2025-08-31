@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { calculateStats } from "@/lib/utils";
 import { Clock, Timer, Hourglass, TrendingUp } from "lucide-react";
 import ProductivityTimeChart from "./ProductivityTimeChart";

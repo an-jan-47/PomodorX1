@@ -61,6 +61,8 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+export { AppContext };
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timerSettings, setTimerSettings] = useState<TimerSettings>(defaultTimerSettings);
@@ -282,7 +284,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Enhanced sound functions with production reliability
+  // Enhanced sound functions with production reliability and YouTube support
   const playSound = async (sound: "start" | "pause" | "complete") => {
     if (!timerSettings.soundEnabled) return;
     
@@ -293,78 +295,155 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Try Web Audio API first (better performance)
-      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      const audioContext = new AudioContext();
-      
-      // Resume context if suspended (required by Chrome)
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-      
-      const gainNode = audioContext.createGain();
-      gainNode.gain.value = timerSettings.soundVolume / 100;
-      
-      // Use absolute URLs for sounds in production with cache busting
+      // Determine sound URL
       const soundUrl = currentCustomSound || 
         new URL(`/sounds/${sound}.mp3?v=${Date.now()}`, window.location.origin).href;
       
-      // Load and decode audio file with enhanced error handling
-      const response = await fetch(soundUrl, {
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
+      // Check if it's a YouTube URL
+      const isYouTube = /(?:youtube\.com|youtu\.be)/.test(soundUrl);
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to load sound from ${soundUrl}`);
+      if (isYouTube) {
+        await playYouTubeSound(soundUrl);
+        return;
       }
-      
-      const arrayBuffer = await response.arrayBuffer();
-      
-      if (arrayBuffer.byteLength === 0) {
-        throw new Error('Empty audio file received');
-      }
-      
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      
-      // Create and configure source
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // Start playback with fade-in for better UX
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(
-        timerSettings.soundVolume / 100,
-        audioContext.currentTime + 0.1
-      );
-      source.start();
-      
-      // Clean up resources properly
-      source.onended = () => {
-        try {
-          source.disconnect();
-          gainNode.disconnect();
-          audioContext.close();
-        } catch (e) {
-          console.warn('Cleanup warning:', e);
-        }
-      };
-      
-      // Timeout for long-running audio contexts
-      setTimeout(() => {
-        if (audioContext.state !== 'closed') {
-          audioContext.close().catch(console.warn);
-        }
-      }, 10000);
+
+      // Try Web Audio API first for regular audio files
+      await playWithWebAudio(soundUrl);
       
     } catch (error) {
       console.error("Web Audio API failed:", error);
       // Enhanced fallback with multiple retry strategies
       await fallbackPlaySound(sound).catch(console.error);
+    }
+  };
+  
+  const playYouTubeSound = async (youtubeUrl: string) => {
+    try {
+      // Use the enhanced YouTube utilities
+      const { createYouTubeAudioElement, isYouTubeUrl } = await import("@/lib/youtubeUtils");
+      
+      if (!isYouTubeUrl(youtubeUrl)) {
+        throw new Error('Invalid YouTube URL');
+      }
+      
+      // Extract video ID from URL
+      const videoIdMatch = youtubeUrl.match(/[?&]v=([^&]+)/);
+      const videoId = videoIdMatch ? videoIdMatch[1] : null;
+      
+      if (!videoId) {
+        throw new Error('Could not extract video ID from YouTube URL');
+      }
+      
+      // Create YouTube audio element using iframe approach
+      const audioElement = createYouTubeAudioElement(videoId);
+      
+      // Add to document temporarily
+      document.body.appendChild(audioElement);
+      
+      // Play for a few seconds then remove
+      setTimeout(() => {
+        if (audioElement && audioElement.parentNode) {
+          audioElement.parentNode.removeChild(audioElement);
+        }
+      }, 3000);
+      
+    } catch (error) {
+      console.error('YouTube sound playback failed:', error);
+      throw error;
+    }
+  };
+  
+  const playWithWebAudio = async (soundUrl: string) => {
+    // Try Web Audio API first (better performance)
+    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const audioContext = new AudioContext();
+    
+    // Resume context if suspended (required by Chrome)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+    
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = timerSettings.soundVolume / 100;
+    
+    // Load and decode audio file with enhanced error handling
+    const response = await fetch(soundUrl, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to load sound from ${soundUrl}`);
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    
+    if (arrayBuffer.byteLength === 0) {
+      throw new Error('Empty audio file received');
+    }
+    
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    
+    // Create and configure source
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Start playback with fade-in for better UX
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(
+      timerSettings.soundVolume / 100,
+      audioContext.currentTime + 0.1
+    );
+    source.start();
+    
+    // Clean up resources properly
+    source.onended = () => {
+      try {
+        source.disconnect();
+        gainNode.disconnect();
+        audioContext.close();
+      } catch (e) {
+        console.warn('Cleanup warning:', e);
+      }
+    };
+    
+    // Timeout for long-running audio contexts
+    setTimeout(() => {
+      if (audioContext.state !== 'closed') {
+        audioContext.close().catch(console.warn);
+      }
+    }, 10000);
+  };
+  
+  const playNotificationSound = async () => {
+    // Browser notification sound fallback
+    try {
+      if ('AudioContext' in window) {
+        const audioContext = new AudioContext();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        setTimeout(() => audioContext.close(), 1000);
+      }
+    } catch (error) {
+      console.error('Notification sound failed:', error);
     }
   };
   
@@ -465,12 +544,4 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-
-export function useApp() {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error("useApp must be used within an AppProvider");
-  }
-  return context;
 }

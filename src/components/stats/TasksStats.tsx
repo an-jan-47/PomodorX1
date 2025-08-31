@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { calculateStats } from "@/lib/utils";
 import { CheckCircle, Circle, ListChecks, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";

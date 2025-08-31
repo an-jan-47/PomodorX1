@@ -1,5 +1,5 @@
 
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import TaskItem from "./TaskItem";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

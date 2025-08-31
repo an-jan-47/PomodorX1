@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Task, TaskPriority, TaskDifficulty } from "@/lib/types";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import {
   Dialog,
   DialogContent,

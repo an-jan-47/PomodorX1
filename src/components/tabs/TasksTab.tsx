@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,15 @@ const TasksTab = () => {
   };
 
   const renderTaskItem = (task: Task) => {
-    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status === "pending";
+    const isOverdue = (() => {
+      if (!task.dueDate || task.status !== "pending") return false;
+      try {
+        const dueDate = new Date(task.dueDate);
+        return !isNaN(dueDate.getTime()) && dueDate < new Date();
+      } catch {
+        return false;
+      }
+    })();
     
     return (
       <div key={task.id} className="flex flex-col border-b border-border pb-3 mb-3">
@@ -113,7 +121,17 @@ const TasksTab = () => {
                   {task.dueDate && (
                     <Badge variant={isOverdue ? "destructive" : "outline"}>
                       <Calendar className="h-3 w-3 mr-1" />
-                      {isOverdue ? "Overdue" : "Due"} {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}
+                      {(() => {
+                        try {
+                          const dueDate = new Date(task.dueDate);
+                          if (isNaN(dueDate.getTime())) {
+                            return "Invalid date";
+                          }
+                          return (isOverdue ? "Overdue" : "Due") + " " + formatDistanceToNow(dueDate, { addSuffix: true });
+                        } catch (error) {
+                          return "Invalid date";
+                        }
+                      })()}
                     </Badge>
                   )}
                 </div>

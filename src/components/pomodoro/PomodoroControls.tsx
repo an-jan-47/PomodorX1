@@ -19,9 +19,11 @@ interface PomodoroControlsProps {
   isPaused: boolean;
   onStart: () => void;
   onPause: () => void;
+  onResume: () => void;
   onSkip: () => void;
   onReset: () => void;
   onOpenSettings: () => void;
+  className?: string;
 }
 
 const PomodoroControls = ({
@@ -29,25 +31,27 @@ const PomodoroControls = ({
   isPaused,
   onStart,
   onPause,
+  onResume,
   onSkip,
   onReset,
   onOpenSettings,
+  className,
 }: PomodoroControlsProps) => {
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-center gap-3">
+      <div className={`flex items-center justify-center gap-3 ${className || ""}`}>
         <Tooltip>
           <TooltipTrigger asChild>
             {!isRunning || isPaused ? (
               <Button
-                onClick={onStart}
+                onClick={isPaused ? onResume : onStart}
                 size="icon"
                 className="w-12 h-12 rounded-full"
                 variant="default"
-                aria-label="Start timer"
+                aria-label={isPaused ? "Resume timer" : "Start timer"}
               >
                 <PlayCircle className="h-6 w-6" />
-                <span className="sr-only">Start</span>
+                <span className="sr-only">{isPaused ? "Resume" : "Start"}</span>
               </Button>
             ) : (
               <Button

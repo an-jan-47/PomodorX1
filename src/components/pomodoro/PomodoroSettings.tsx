@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import {
   Dialog,
   DialogContent,

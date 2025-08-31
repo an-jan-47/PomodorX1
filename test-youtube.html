@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Test</title>
+</head>
+<body>
+    <h1>YouTube Audio Test</h1>
+    <div>
+        <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL" style="width: 400px;">
+        <button onclick="testYouTubeAudio()">Test Audio</button>
+        <button onclick="stopAudio()">Stop</button>
+    </div>
+    <div id="status"></div>
+    <div id="player"></div>
+
+    <script>
+        // Copy of youtubeUtils functionality for testing
+        function isYouTubeUrl(url) {
+            const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            return youtubeRegex.test(url);
+        }
+
+        function extractYouTubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        async function createYouTubeAudioElement(url, volume = 0.7) {
+            try {
+                const status = document.getElementById('status');
+                status.innerHTML = 'Loading YouTube audio...';
+
+                if (!isYouTubeUrl(url)) {
+                    throw new Error('Invalid YouTube URL');
+                }
+
+                const videoId = extractYouTubeVideoId(url);
+                if (!videoId) {
+                    throw new Error('Could not extract video ID');
+                }
+
+                // Create iframe for YouTube embedding
+                const iframe = document.createElement('iframe');
+                iframe.width = '0';
+                iframe.height = '0';
+                iframe.style.position = 'absolute';
+                iframe.style.left = '-9999px';
+                iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+                iframe.allow = 'autoplay; encrypted-media';
+                iframe.setAttribute('allowfullscreen', '');
+
+                document.getElementById('player').appendChild(iframe);
+
+                status.innerHTML = 'YouTube audio loaded successfully!';
+                return iframe;
+
+            } catch (error) {
+                console.error('YouTube audio error:', error);
+                document.getElementById('status').innerHTML = `Error: ${error.message}`;
+                throw error;
+            }
+        }
+
+        let currentPlayer = null;
+
+        async function testYouTubeAudio() {
+            const url = document.getElementById('youtubeUrl').value;
+            try {
+                currentPlayer = await createYouTubeAudioElement(url);
+            } catch (error) {
+                console.error('Test failed:', error);
+            }
+        }
+
+        function stopAudio() {
+            if (currentPlayer) {
+                currentPlayer.remove();
+                currentPlayer = null;
+                document.getElementById('status').innerHTML = 'Audio stopped';
+            }
+        }
+
+        // Pre-fill with a test URL
+        document.getElementById('youtubeUrl').value = 'https://music.youtube.com/watch?v=COatCg74F70&si=1_CAjZnfU_MSQHg4';
+    </script>
+</body>
+</html>

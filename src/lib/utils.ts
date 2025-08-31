@@ -8,8 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatTime(seconds: number): string {
+  // Handle NaN, negative, or invalid values
+  if (isNaN(seconds) || seconds < 0 || !isFinite(seconds)) {
+    return "00:00";
+  }
+  
   const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
@@ -106,8 +111,8 @@ export const calculateStats = (tasks: Task[], pomodoroSessions: PomodoroSession[
   
   // Calculate overdue tasks
   const overdueTasks = filteredTasks.filter(task => {
-    if (task.status === "completed" || !task.due_date) return false;
-    const dueDate = new Date(task.due_date);
+    if (task.status === "completed" || !task.dueDate) return false;
+    const dueDate = new Date(task.dueDate);
     return dueDate < new Date();
   }).length;
 

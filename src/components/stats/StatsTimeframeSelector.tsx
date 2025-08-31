@@ -1,4 +1,4 @@
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsTimeframe } from "@/lib/types";
 import { motion } from "framer-motion";

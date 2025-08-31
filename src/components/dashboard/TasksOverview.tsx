@@ -1,4 +1,4 @@
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Clock, ListTodo, AlertCircle } from "lucide-react";
 import { isToday, isThisWeek } from "@/lib/utils";

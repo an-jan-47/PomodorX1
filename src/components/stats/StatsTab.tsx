@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, Circle, ListChecks, AlertCircle, Clock, Timer, Hourglass, TrendingUp, Lightbulb, Gauge, Target } from "lucide-react";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { useMemo } from "react";
 import { calculateStats } from "@/lib/utils";
 import { motion } from "framer-motion";

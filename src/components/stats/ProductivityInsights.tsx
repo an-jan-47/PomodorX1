@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useApp } from '@/contexts/AppContext';
+import { useApp } from '@/hooks/useApp';
 import { 
   Lightbulb, TrendingUp, Clock, Gauge, Target 
 } from 'lucide-react';

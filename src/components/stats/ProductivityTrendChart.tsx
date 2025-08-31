@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, 
   Tooltip, CartesianGrid, Line, ReferenceLine, ReferenceArea
 } from "recharts";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import { StatsTimeframe } from "@/lib/types";
 import { motion } from "framer-motion";
 import { Clock, Timer, TrendingUp, Gauge } from "lucide-react";

@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Calendar, Flag, Zap } from "lucide-react";
-import { useApp } from "@/contexts/AppContext";
+import { useApp } from "@/hooks/useApp";
 import TaskEditDialog from "./TaskEditDialog";
 import { formatDistanceToNow } from "date-fns";
 
