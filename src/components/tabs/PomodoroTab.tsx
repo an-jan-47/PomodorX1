@@ -4,11 +4,13 @@ import PomodoroTimer from "@/components/pomodoro/PomodoroTimer";
 import PomodoroSettings from "@/components/pomodoro/PomodoroSettings";
 import { CustomSoundsDialog } from "@/components/pomodoro/CustomSoundsDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/contexts/AppContext";
+import { Minimize2 } from "lucide-react";
 
 const PomodoroTab = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { pomodoroSessions } = useApp();
+  const { pomodoroSessions, setIsMinimized } = useApp();
   
   // Calculate some basic stats for this section
   const totalSessions = pomodoroSessions.length;
@@ -26,7 +28,19 @@ const PomodoroTab = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Pomodoro Timer</h2>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hover:bg-black-100 dark:hover:bg-blue-800 h-8 w-50 p-2"
+            onClick={() => setIsMinimized(true)}
+            title="Minimize to overlay"
+          >
+            <h2 className="text-l font-semibold"> Minimize</h2>
+            <Minimize2 className="h-4 w-4" />
+          </Button>
+          
+        </div>
         <div className="flex gap-2">
           <CustomSoundsDialog />
         </div>

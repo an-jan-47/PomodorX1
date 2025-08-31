@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import MainLayout from "@/components/MainLayout";
+import MinimizedWindow from "@/components/pomodoro/MinimizedWindow";
 import { AppProvider } from "@/contexts/AppContext";
 
 const Index = () => {
@@ -12,6 +13,7 @@ const Index = () => {
   return (
     <AppProvider>
       <MainLayout />
+      <MinimizedWindow />
     </AppProvider>
   );
 };

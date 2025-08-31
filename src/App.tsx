@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import "./styles/enhancements.css";
 
 const queryClient = new QueryClient();
 

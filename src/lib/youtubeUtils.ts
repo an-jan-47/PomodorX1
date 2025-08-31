@@ -10,15 +10,14 @@ export const processYouTubeUrl = async (url: string): Promise<YouTubeAudio> => {
     const videoId = extractYouTubeVideoId(url);
     if (!videoId) throw new Error("Invalid YouTube URL");
     
-    // Fetch audio stream URL using a server endpoint
-    const response = await fetch(`/api/youtube-audio?videoId=${videoId}`);
-    if (!response.ok) throw new Error("Failed to process YouTube URL");
+    // Instead of using a server endpoint, use direct YouTube URL
+    // Note: Due to YouTube's terms of service, we should use their embedded player
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0`;
     
-    const data = await response.json();
     return {
-      url: data.audioUrl,
-      title: data.title,
-      duration: data.duration
+      url: embedUrl,
+      title: "YouTube Audio", // We can't get the title without API access
+      duration: 0 // We can't get the duration without API access
     };
   } catch (error) {
     console.error("YouTube processing error:", error);

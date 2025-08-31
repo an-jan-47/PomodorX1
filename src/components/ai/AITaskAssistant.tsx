@@ -4,13 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, Send, Clock, CheckCircle, PenSquare, Settings } from "lucide-react";
-import { Task } from "@/lib/types";
+import { Task, TaskPriority, TaskDifficulty } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 const AITaskAssistant = () => {
-  const { tasks, addTask, editTask, deleteTask, toggleTaskStatus, timerSettings, updateTimerSettings } = useApp();
+  const { 
+    tasks, 
+    addTask, 
+    addTaskWithParams, 
+    editTask, 
+    deleteTask, 
+    toggleTaskStatus, 
+    timerSettings, 
+    updateTimerSettings 
+  } = useApp();
   const { toast } = useToast();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
@@ -57,7 +66,78 @@ const AITaskAssistant = () => {
     return includesMatch || null;
   };
 
-  const extractTaskTitle = (input: string, actionType: string): string => {
+    // Enhanced task creation with parameters
+  const parseTaskParameters = (input: string) => {
+    const params: {
+      title: string;
+      priority?: TaskPriority;
+      difficulty?: TaskDifficulty;
+      dueDate?: string;
+    } = {
+      title: ""
+    };
+
+    // Extract priority
+    if (input.match(/high priority|urgent|important/i)) {
+      params.priority = "high";
+    } else if (input.match(/low priority|minor|later/i)) {
+      params.priority = "low";
+    } else {
+      params.priority = "medium";
+    }
+
+    // Extract difficulty
+    if (input.match(/difficult|hard|complex|challenging/i)) {
+      params.difficulty = "hard";
+    } else if (input.match(/easy|simple|quick/i)) {
+      params.difficulty = "easy";
+    } else {
+      params.difficulty = "medium";
+    }
+
+    // Extract due date patterns
+    const dueDateMatch = input.match(/(today|tomorrow|next week|in \d+ days?|by \d{4}-\d{2}-\d{2})/i);
+    if (dueDateMatch) {
+      const dateText = dueDateMatch[1].toLowerCase();
+      const now = new Date();
+      
+      if (dateText === "today") {
+        params.dueDate = new Date(now.setHours(23, 59, 59)).toISOString();
+      } else if (dateText === "tomorrow") {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59, 59);
+        params.dueDate = tomorrow.toISOString();
+      } else if (dateText === "next week") {
+        const nextWeek = new Date(now);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        nextWeek.setHours(23, 59, 59);
+        params.dueDate = nextWeek.toISOString();
+      } else if (dateText.match(/in (\d+) days?/)) {
+        const daysMatch = dateText.match(/in (\d+) days?/);
+        if (daysMatch) {
+          const days = parseInt(daysMatch[1]);
+          const futureDate = new Date(now);
+          futureDate.setDate(futureDate.getDate() + days);
+          futureDate.setHours(23, 59, 59);
+          params.dueDate = futureDate.toISOString();
+        }
+      }
+    }
+
+    // Extract the core task title by removing parameter keywords
+    params.title = input
+      .replace(/(add|create|new)\s+(task\s+)?/i, "")
+      .replace(/\b(high|medium|low)\s+priority\b/gi, "")
+      .replace(/\b(easy|medium|hard|difficult|simple|complex|challenging)\b/gi, "")
+      .replace(/\b(today|tomorrow|next week|in \d+ days?|by \d{4}-\d{2}-\d{2})\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return params;
+  };
+
+  const extractTaskTitle = (input: string, pattern: string) => {
     const normalized = input.trim().replace(/\s+/g, " ");
     const addPatterns = [
       /add (?:a )?task to (.+)/i,
@@ -86,14 +166,16 @@ const AITaskAssistant = () => {
     try {
       const lowerInput = userInput.toLowerCase();
       if (lowerInput.match(/add|create|new/i) && lowerInput.includes("task")) {
-        const taskTitle = extractTaskTitle(userInput, "add|create|new");
-        if (taskTitle) {
+        const taskParams = parseTaskParameters(userInput);
+        if (taskParams.title) {
           try {
-            addTask(taskTitle);
-            response = `Added new task: "${taskTitle}"`;
+            addTaskWithParams(taskParams);
+            const categoryInfo = `${taskParams.priority} priority, ${taskParams.difficulty} difficulty`;
+            const dueDateInfo = taskParams.dueDate ? `, due ${taskParams.dueDate}` : "";
+            response = `Added new task: "${taskParams.title}" (${categoryInfo}${dueDateInfo})`;
             toast({
-              title: "Task Added",
-              description: `"${taskTitle}" has been added to your tasks.`
+              title: "Enhanced Task Added",
+              description: `"${taskParams.title}" has been added with ${categoryInfo}.`
             });
           } catch (error) {
             console.error('Error adding task:', error);
@@ -388,14 +470,14 @@ const AITaskAssistant = () => {
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <Card
-          className="relative shadow-xl rounded-2xl border-0 bg-black text-white animate-fade-in !border-0 !border-none"
+          className="relative shadow-xl rounded-2xl bg-black text-white animate-fade-in border-none"
           style={{
             border: "none",
             borderColor: "transparent",
             boxShadow: "0 6px 24px 0 rgba(31, 38, 135, 0.25)",
           }}
         >
-          <CardHeader className="rounded-t-2xl bg-transparent p-4 flex items-center gap-2">
+          <CardHeader className="rounded-t-2xl bg-transparent p-4 flex items-center justify-between">
             <CardTitle
               className="text-lg font-semibold text-white tracking-wide"
               style={{

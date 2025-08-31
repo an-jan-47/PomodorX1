@@ -1,12 +1,19 @@
 
 export type TaskStatus = "pending" | "completed";
 
+export type TaskPriority = "low" | "medium" | "high";
+
+export type TaskDifficulty = "easy" | "medium" | "hard";
+
 export interface Task {
   id: string;
   title: string;
   status: TaskStatus;
   createdAt: string;
   completedAt?: string;
+  dueDate?: string;  // ISO string for due date and time
+  priority: TaskPriority;
+  difficulty: TaskDifficulty;
 }
 
 export interface TimerSettings {

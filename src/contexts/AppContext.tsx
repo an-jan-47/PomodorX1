@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Task, TimerSettings, PomodoroSession, StatsTimeframe, TaskStatus } from "@/lib/types";
+import { Task, TimerSettings, PomodoroSession, StatsTimeframe, TaskStatus, TaskPriority, TaskDifficulty } from "@/lib/types";
 import { 
   getTasks, 
   saveTasks, 
@@ -15,13 +15,26 @@ import {
 import { generateId } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+interface TaskParams {
+  title: string;
+  dueDate?: string;
+  priority?: TaskPriority;
+  difficulty?: TaskDifficulty;
+}
+
 interface AppContextType {
   // Tasks
   tasks: Task[];
   addTask: (title: string) => void;
+  addTaskWithParams: (params: TaskParams) => void;
   editTask: (id: string, title: string) => void;
+  editTaskWithParams: (id: string, params: Partial<TaskParams>) => void;
   toggleTaskStatus: (id: string) => void;
   deleteTask: (id: string) => void;
+  
+  // Window management
+  isMinimized: boolean;
+  setIsMinimized: (minimized: boolean) => void;
 
   // Timer Settings
   timerSettings: TimerSettings;
@@ -55,6 +68,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [statsTimeframe, setStatsTimeframe] = useState<StatsTimeframe>("daily");
   const [customSounds, setCustomSounds] = useState<string[]>([]);
   const [currentCustomSound, setCurrentCustomSound] = useState<string | null>(null);
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const { toast } = useToast();
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -79,6 +93,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Helper function to get automatic category based on priority and difficulty
+  const getAutomaticCategory = (priority: TaskPriority, difficulty: TaskDifficulty): string => {
+    if (priority === "high" && difficulty === "hard") return "Critical Complex";
+    if (priority === "high" && difficulty === "medium") return "High Priority";
+    if (priority === "high" && difficulty === "easy") return "Quick Wins";
+    if (priority === "medium" && difficulty === "hard") return "Challenging";
+    if (priority === "medium" && difficulty === "medium") return "Standard";
+    if (priority === "medium" && difficulty === "easy") return "Easy Tasks";
+    if (priority === "low" && difficulty === "hard") return "Learning";
+    if (priority === "low" && difficulty === "medium") return "Optional";
+    return "Minor Tasks";
+  };
+
   // Tasks functions
   const addTask = (title: string) => {
     const newTask: Task = {
@@ -86,6 +113,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       title,
       status: "pending" as TaskStatus,
       createdAt: new Date().toISOString(),
+      priority: "medium" as TaskPriority,
+      difficulty: "medium" as TaskDifficulty,
     };
     const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
@@ -96,10 +125,49 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const addTaskWithParams = (params: TaskParams) => {
+    const priority = params.priority || "medium";
+    const difficulty = params.difficulty || "medium";
+    const category = getAutomaticCategory(priority, difficulty);
+    
+    const newTask: Task = {
+      id: generateId(),
+      title: params.title,
+      status: "pending" as TaskStatus,
+      createdAt: new Date().toISOString(),
+      dueDate: params.dueDate,
+      priority,
+      difficulty,
+    };
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+    toast({
+      title: "Task added",
+      description: `Task created in category: ${category}`,
+    });
+  };
+
   const editTask = (id: string, title: string) => {
     const updatedTasks = tasks.map(task => 
       task.id === id ? { ...task, title } : task
     );
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+  };
+
+  const editTaskWithParams = (id: string, params: Partial<TaskParams>) => {
+    const updatedTasks = tasks.map(task => {
+      if (task.id === id) {
+        const updatedTask = { ...task };
+        if (params.title) updatedTask.title = params.title;
+        if (params.dueDate !== undefined) updatedTask.dueDate = params.dueDate;
+        if (params.priority) updatedTask.priority = params.priority;
+        if (params.difficulty) updatedTask.difficulty = params.difficulty;
+        return updatedTask;
+      }
+      return task;
+    });
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
   };
@@ -145,20 +213,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const recordPomodoroSession = (session: Omit<PomodoroSession, "id">) => {
     const newSession = {
       ...session,
-      id: generateUniqueId(),
-      timestamp: Date.now()
+      id: generateId(),
     };
   
     // Immediate state update
-    setPomodoroSessions(prev => [...prev, newSession]);
+    const updatedSessions = [...pomodoroSessions, newSession];
+    setPomodoroSessions(updatedSessions);
     
     // Persist to storage
-    const updatedSessions = [...pomodoroSessions, newSession];
-    savePomodoroSessions(updatedSessions);
-    
-    // Calculate and update stats immediately
-    const updatedStats = calculateAdvancedMetrics(updatedSessions);
-    // Update stats in state/storage
+    savePomodoroSession(newSession);
   };
 
   // Custom sounds functions
@@ -219,19 +282,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sound functions
+  // Enhanced sound functions with production reliability
   const playSound = async (sound: "start" | "pause" | "complete") => {
     if (!timerSettings.soundEnabled) return;
     
     try {
-      // Create AudioContext for better control
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Ensure user gesture compliance for browsers
+      if (document.visibilityState === 'hidden') {
+        console.warn('Skipping sound playback - page not visible');
+        return;
+      }
+
+      // Try Web Audio API first (better performance)
+      const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const audioContext = new AudioContext();
+      
+      // Resume context if suspended (required by Chrome)
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      
       const gainNode = audioContext.createGain();
       gainNode.gain.value = timerSettings.soundVolume / 100;
       
-      // Load and decode audio file
-      const response = await fetch(currentCustomSound || `/sounds/${sound}.mp3`);
+      // Use absolute URLs for sounds in production with cache busting
+      const soundUrl = currentCustomSound || 
+        new URL(`/sounds/${sound}.mp3?v=${Date.now()}`, window.location.origin).href;
+      
+      // Load and decode audio file with enhanced error handling
+      const response = await fetch(soundUrl, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to load sound from ${soundUrl}`);
+      }
+      
       const arrayBuffer = await response.arrayBuffer();
+      
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error('Empty audio file received');
+      }
+      
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
       // Create and configure source
@@ -240,7 +335,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       source.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Start playback with fade-in
+      // Start playback with fade-in for better UX
       gainNode.gain.setValueAtTime(0, audioContext.currentTime);
       gainNode.gain.linearRampToValueAtTime(
         timerSettings.soundVolume / 100,
@@ -248,28 +343,109 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       );
       source.start();
       
-      // Clean up
+      // Clean up resources properly
       source.onended = () => {
-        source.disconnect();
-        gainNode.disconnect();
+        try {
+          source.disconnect();
+          gainNode.disconnect();
+          audioContext.close();
+        } catch (e) {
+          console.warn('Cleanup warning:', e);
+        }
       };
+      
+      // Timeout for long-running audio contexts
+      setTimeout(() => {
+        if (audioContext.state !== 'closed') {
+          audioContext.close().catch(console.warn);
+        }
+      }, 10000);
+      
     } catch (error) {
-      console.error("Error playing sound:", error);
-      // Fallback to simple Audio API
-      fallbackPlaySound(sound);
+      console.error("Web Audio API failed:", error);
+      // Enhanced fallback with multiple retry strategies
+      await fallbackPlaySound(sound).catch(console.error);
     }
   };
   
-  const fallbackPlaySound = (sound: "start" | "pause" | "complete") => {
-    const audio = new Audio(currentCustomSound || `/sounds/${sound}.mp3`);
-    audio.volume = timerSettings.soundVolume / 100;
-    audio.play().catch(console.error);
+  const fallbackPlaySound = async (sound: "start" | "pause" | "complete") => {
+    const maxRetries = 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        const soundUrl = currentCustomSound || 
+          new URL(`/sounds/${sound}.mp3?v=${Date.now()}&attempt=${attempt}`, window.location.origin).href;
+        
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.volume = Math.max(0, Math.min(1, timerSettings.soundVolume / 100));
+        
+        // Set up error handling before setting src
+        const loadPromise = new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Audio load timeout'));
+          }, 5000);
+          
+          audio.addEventListener('canplaythrough', () => {
+            clearTimeout(timeout);
+            resolve();
+          }, { once: true });
+          
+          audio.addEventListener('error', (e) => {
+            clearTimeout(timeout);
+            reject(new Error(`Audio load error: ${audio.error?.message || 'Unknown'}`));
+          }, { once: true });
+        });
+        
+        audio.src = soundUrl;
+        audio.load();
+        
+        // Wait for audio to be ready
+        await loadPromise;
+        
+        // Attempt to play
+        const playPromise = audio.play();
+        if (playPromise) {
+          await playPromise;
+        }
+        
+        // Clean up when done
+        audio.addEventListener('ended', () => {
+          audio.remove();
+        }, { once: true });
+        
+        return; // Success, exit retry loop
+        
+      } catch (error) {
+        attempt++;
+        console.error(`Fallback sound attempt ${attempt} failed:`, error);
+        
+        if (attempt >= maxRetries) {
+          console.error("All sound playback attempts failed");
+          // Last resort: try system beep or notification
+          try {
+            if ('vibrate' in navigator) {
+              navigator.vibrate([200, 100, 200]);
+            }
+          } catch (e) {
+            console.warn('Vibration fallback failed:', e);
+          }
+          throw error;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+      }
+    }
   };
   
   const value = {
     tasks,
     addTask,
+    addTaskWithParams,
     editTask,
+    editTaskWithParams,
     toggleTaskStatus,
     deleteTask,
     timerSettings,
@@ -283,7 +459,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     addCustomSound,
     removeCustomSound,
     currentCustomSound,
-    setCurrentCustomSound
+    setCurrentCustomSound,
+    isMinimized,
+    setIsMinimized
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

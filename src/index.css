@@ -230,3 +230,60 @@
   @apply backdrop-blur-sm bg-background/80;
 }
 
+/* Minimized overlay styles for persistent visibility */
+.minimized-overlay {
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateZ(0) !important;
+  will-change: transform !important;
+}
+
+/* Ensure overlay stays visible even when page is hidden */
+.minimized-overlay-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999998 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+/* Hardware acceleration for smooth dragging */
+.draggable {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Responsive date picker styles */
+.date-picker-mobile {
+  @media (max-width: 640px) {
+    .calendar-wrapper {
+      @apply w-full;
+    }
+    
+    .time-section {
+      @apply w-full;
+    }
+  }
+}
+
+/* Smooth transitions for better UX */
+.overlay-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay-hover {
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.overlay-hover:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
